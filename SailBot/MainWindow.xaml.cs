@@ -17,7 +17,6 @@ using System.Threading;
 using System.Collections.Concurrent;
 using System.Net.Mail;
 using System.IO;
-using WiimoteLib;
 
 namespace SailBot
 {
@@ -45,8 +44,6 @@ namespace SailBot
     {
         String[] Titles = { "SailBot", "Båtkapten", "Capitán del Barco", "kapitan łodzi", "capitaine de bateau" };
 
-        Wiimote Wm = new Wiimote();
-        ButtonState WmButtons = new ButtonState();
 
 
         MotorControllerCom MotorCom = new MotorControllerCom();
@@ -220,14 +217,6 @@ namespace SailBot
             BmsUpdateTimer.Elapsed += BmsUpdateTimer_Elapsed;
             BmsUpdateTimer.Start();
 
-            Wm.WiimoteDisconnected += Wm_WiimoteDisconnected;
-            Wm.WiimoteChanged += Wm_WiimoteChanged;
-
-            WiiMoteTimer = new System.Timers.Timer();
-            WiiMoteTimer.Interval = 500;
-            WiiMoteTimer.Elapsed += WiiMoteTimer_Elapsed;
-            WiiMoteTimer.Start();
-
             Leds.SetInteriorColor(Brushes.White);
             Leds.Init(LedComPort);
 
@@ -240,156 +229,6 @@ namespace SailBot
 
         }
 
-        void Wm_WiimoteChanged( object sender, WiimoteChangedEventArgs e )
-        {
-            WiimoteState ws = e.WiimoteState;
-
-            Dispatcher.BeginInvoke( ( Action<ButtonState> )( ( x ) => { UpdateWiiButtons( x ); } ), ws.ButtonState );
-
-        }
-
-        void UpdateWiiButtons( ButtonState new_state )
-        {
-            bool set_speed = false;
-
-            double step_size = 0.1;
-
-
-            if( WmButtons.A && !new_state.A )
-            {
-                MotorSpeed = 0.0;
-                set_speed = true;
-            }
-
-            if( WmButtons.Up && !new_state.Up )
-            {
-                MotorSpeed += step_size;
-                if( MotorSpeed > 1 )
-                    MotorSpeed = 1;
-                set_speed = true;
-
-                MotorSpeed = Math.Round( MotorSpeed, 2 );
-            }
-
-            if( WmButtons.Down && !new_state.Down )
-            {
-                MotorSpeed -= step_size;
-                if( MotorSpeed < -1.0 )
-                    MotorSpeed = -1.0;
-                set_speed = true;
-                MotorSpeed = Math.Round( MotorSpeed, 2 );
-            }
-
-
-            int old_led_state = LedState;
-            if (WmButtons.Plus && !new_state.Plus)
-                LedState++;
-            
-            if (WmButtons.Minus && !new_state.Minus)
-                LedState--;
-
-            if( old_led_state != LedState )
-            {
-                int animation_count = 3;
-                if (LedState < 0)
-                    LedState = animation_count - 1;
-                if (LedState >= animation_count)
-                    LedState = 0;
-
-                if( LedState == 0 )
-                {
-                    Leds.SetInteriorColor(Brushes.White);
-                }
-                else if( LedState == 1)
-                {
-                    Leds.SetInteriorColor(Brushes.Red);
-                }
-                else if( LedState == 2 )
-                {
-                    Leds.SetRainbow();
-                }
-            }
-
-
-            if( set_speed )
-            {
-
-                UpdateMotorConnectedStatus();
-                
-                if( IsMotorConnected )
-                {
-
-                    if( MotorSpeed == 0 )
-                    {
-                        SetSpeed( 0.0 );
-                        SetDirection( MotorControllerCom.Direction.NoDirection );
-
-                    }
-                    else if( MotorSpeed > 0 )
-                    {
-                        SetDirection( MotorControllerCom.Direction.Forward );
-                        SetSpeed( MotorSpeed );
-
-                    }
-                    else if( MotorSpeed < 0 )
-                    {
-                        SetDirection( MotorControllerCom.Direction.Reverse );
-                        SetSpeed( Math.Abs( MotorSpeed ) );
-                    }
-                }
-                else
-                {
-                    if( MotorSpeed != 0 )
-                    {
-                        UpdateDirection( MotorSpeed > 0 ? MotorControllerCom.Direction.Forward : MotorControllerCom.Direction.Reverse );
-                    }
-                    else
-                    {
-                        UpdateDirection( MotorControllerCom.Direction.NoDirection );
-                    }
-                }
-
-                SpeedSlider.Value = Math.Abs( MotorSpeed ) * SpeedSlider.Maximum;
-            }
-
-            WmButtons = new_state;
-        }
-
-        void Wm_WiimoteDisconnected( object sender, EventArgs e )
-        {
-            Console.WriteLine( "WiiMote Disconnected" );
-            WiiMoteTimer.Start();
-        }
-
-        void WiiMoteTimer_Elapsed( object sender, System.Timers.ElapsedEventArgs e )
-        {
-            WiiMoteTimer.Stop();
-
-            try
-            {
-                //if( Wiimote.WiiMoteDetected() )
-                {
-                    Wm.Connect();
-                    Console.WriteLine( "WiiMote Connected" );
-
-                    Wm.GetStatus();
-                }
-                //else
-                {
-                    //WiiMoteTimer.Start();
-                }
-
-            }
-            catch(WiimoteNotFoundException ex)
-            {
-                WiiMoteTimer.Start();
-            }
-            catch(System.IO.IOException ex)
-            {
-                //internal failure, lets give up.
-                //WiiMoteTimer.Start();
-            }
-        }
 
 
         private void BatteryView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -436,7 +275,12 @@ namespace SailBot
             MailMessage message = new MailMessage("markgarrison@saleae.com", "5102069107@txt.att.net");
             message.CC.Add("mark.garrison@gmail.com");
             message.Subject = "batt updt";
-            
+
+            if (BatteryReadData == null)
+            {
+                Console.WriteLine("BMS not availible for SMS");
+                return;
+            }
 
             string body = "";
 

@@ -72,6 +72,9 @@ namespace SailBot
 
             Dictionary<string, string> ftdi_ports_detected = new Dictionary<string, string>();
 
+            //clear out ports that don't exist first:
+            ValidatePorts();
+
             UInt32 ftdiDeviceCount = 0;
             FTDI.FT_STATUS ftStatus = FTDI.FT_STATUS.FT_OK;
 
