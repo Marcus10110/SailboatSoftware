@@ -1,0 +1,249 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:SailBot" xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="SailBot.MainWindow"
+        Title="MainWindow" Height="700" Width="900" Background="Black" WindowState="Normal" WindowStyle="SingleBorderWindow" Loaded="Window_Loaded">
+    <Window.Resources>
+		<SolidColorBrush x:Key="PrimaryAppColor" Color="#FF870000"/>
+		<Style TargetType="{x:Type Label}">
+		  <Setter Property="Foreground" Value="White" />
+		  <Setter Property="Background" Value="#FF870000" />
+		  <Setter Property="FontFamily" Value="Consolas" />
+		  <Setter Property="Margin" Value="7" />
+		  <Setter Property="FontSize" Value="14.667" />
+		</Style>
+        <Style x:Key="SliderRepeatButtonStyle" TargetType="{x:Type RepeatButton}">
+        	<Setter Property="OverridesDefaultStyle" Value="true"/>
+        	<Setter Property="IsTabStop" Value="false"/>
+        	<Setter Property="Focusable" Value="false"/>
+        	<Setter Property="Template">
+        		<Setter.Value>
+        			<ControlTemplate TargetType="{x:Type RepeatButton}">
+        				<Rectangle Fill="Transparent"/>
+        			</ControlTemplate>
+        		</Setter.Value>
+        	</Setter>
+        </Style>
+
+		<Style x:Key="SliderRepeatButtonStyle2" TargetType="{x:Type RepeatButton}">
+			<Setter Property="OverridesDefaultStyle" Value="true"/>
+			<Setter Property="IsTabStop" Value="false"/>
+			<Setter Property="Focusable" Value="false"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="{x:Type RepeatButton}">
+						<Rectangle Fill="#80870000" Margin="5,2,5,2"/>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+        </Style>
+
+        <Style x:Key="CustomThumbForSlider" TargetType="{x:Type Thumb}">
+        	<Setter Property="OverridesDefaultStyle" Value="True"/>
+        	<Setter Property="Template">
+        		<Setter.Value>
+        			<ControlTemplate TargetType="{x:Type Thumb}">
+        				<Rectangle Fill="Red" Width="34" Height="20" Margin="0,0,0,0"/>
+
+        			</ControlTemplate>
+        		</Setter.Value>
+        	</Setter>
+        </Style>
+
+        <Style x:Key="MyCustomStyleForSlider" TargetType="{x:Type Slider}">
+        	<Setter Property="Template">
+        		<Setter.Value>
+        			<ControlTemplate TargetType="{x:Type Slider}">
+        				<Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+        					<Grid>
+        						<Grid.ColumnDefinitions>
+        							<ColumnDefinition Width="Auto" />
+        							<ColumnDefinition Width="Auto"
+        								MinWidth="{TemplateBinding MinWidth}" />
+        							<ColumnDefinition Width="Auto" />
+        						</Grid.ColumnDefinitions>
+        						<TickBar x:Name="TopTick" Visibility="Visible"  Fill="{StaticResource PrimaryAppColor}" Placement="Left" Width="7" Margin="0,0,7,0" Grid.Column="0" />
+        						<TickBar x:Name="BottomTick" Visibility="Visible" Fill="{StaticResource PrimaryAppColor}" Placement="Right" Width="7" Margin="7,0,0,0" Grid.Column="0"/>
+        						<Border x:Name="TrackBackground" 
+        							Background="Transparent"
+
+        							BorderBrush="{StaticResource PrimaryAppColor}"  
+										                                      
+        							BorderThickness="1" CornerRadius="1"
+        							Margin="0,0" VerticalAlignment="Stretch" Width="40.0"  Grid.Row="0" >
+        							<Canvas Margin="-6,-1">
+        								<Rectangle Visibility="Hidden" x:Name="PART_SelectionRange" Width="4.0"
+        									Fill="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"
+        									Stroke="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}"
+        									StrokeThickness="1.0"/>
+        							</Canvas>
+        						</Border>
+        						<Track x:Name="PART_Track" Grid.Row="1">
+        							<Track.DecreaseRepeatButton>
+        								<RepeatButton  Style="{StaticResource SliderRepeatButtonStyle2}" Command="{x:Static Slider.DecreaseLarge}"/>
+        							</Track.DecreaseRepeatButton>
+        							<Track.IncreaseRepeatButton>
+        								<RepeatButton Style="{StaticResource SliderRepeatButtonStyle}" Command="{x:Static Slider.IncreaseLarge}"/>
+        							</Track.IncreaseRepeatButton>
+        							<Track.Thumb>
+        								<Thumb x:Name="Thumb" Style="{StaticResource CustomThumbForSlider}"  Background="Black"/>
+        							</Track.Thumb>
+        						</Track>
+        					</Grid>
+        				</Border>
+        			</ControlTemplate>
+        		</Setter.Value>
+        	</Setter>
+        </Style>
+    </Window.Resources>
+	<UniformGrid Rows="2" Columns="2">
+		
+		<Grid Margin="5">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="4*"/>
+				<RowDefinition/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition Width="2*"/>
+				<ColumnDefinition Width="2*"/>
+				<ColumnDefinition Width="2*"/>
+			</Grid.ColumnDefinitions>
+			<Slider x:Name="SpeedSlider" Margin="0,5" Style="{StaticResource MyCustomStyleForSlider}" RenderTransformOrigin="0.5,0.5" Grid.RowSpan="3" Orientation="Vertical" HorizontalAlignment="Center" Value="0" TickPlacement="Both" TickFrequency="0.5" Thumb.DragCompleted="SpeedSlider_DragCompleted" />
+			<Label x:Name="BoatSpeedLbl" Content="0.0 kts" Grid.Column="1" Grid.ColumnSpan="3" FontSize="72" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+			<Label x:Name="DirLbl" Content="FORWARD" Grid.Column="1" Grid.Row="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="14.667" />
+			<Label x:Name="RpmLbl" Content="---- RPM" Grid.Column="2" Grid.Row="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+			<Label x:Name="KeyLbl" Content="KEY OFF" Grid.Column="3" Grid.Row="1" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+			<Label x:Name="MotorPowerLbl" Content="0.00 kW" Grid.Column="1" Grid.Row="2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+			<Label x:Name="MotorHpLbl" Content="0.00 HP" Grid.Column="2" Grid.Row="2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+			<Label Content="MANUAL" Grid.Column="3"  Grid.Row="2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+
+		</Grid>
+
+
+		<Grid Margin="5">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="4*"/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+		
+			<UniformGrid Rows="5" Columns="3" Grid.ColumnSpan="3">
+		
+				<local:BatteryViewControl x:Name="Cell0"/>
+				<local:BatteryViewControl x:Name="Cell1"/>
+				<local:BatteryViewControl x:Name="Cell2"/>
+				<local:BatteryViewControl x:Name="Cell3"/>
+				<local:BatteryViewControl x:Name="Cell4"/>
+				<local:BatteryViewControl x:Name="Cell5"/>
+				<local:BatteryViewControl x:Name="Cell6"/>
+				<local:BatteryViewControl x:Name="Cell7"/>
+				<local:BatteryViewControl x:Name="Cell8"/>
+				<local:BatteryViewControl x:Name="Cell9"/>
+				<local:BatteryViewControl x:Name="Cell10"/>
+				<local:BatteryViewControl x:Name="Cell11"/>
+				<local:BatteryViewControl x:Name="Cell12"/>
+				<local:BatteryViewControl x:Name="Cell13"/>
+				<local:BatteryViewControl x:Name="Cell14"/>
+		
+			</UniformGrid>
+			<Grid Background="#FF1A7400"  Grid.Row="1" Margin="5">
+				<Label x:Name="SystemCurrentLbl" Content="Current: 0A" Background="Transparent" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0" />
+				<Label x:Name="SystemVoltageLbl" Content="Voltage: 0V" Background="Transparent" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0"  />
+
+			</Grid>
+			<Grid Background="#FF1A7400"  Grid.Row="1" Margin="5" Grid.Column="1">
+				<Label x:Name="PackVoltageDeltaLbl" Content="Pack Δ 0.00V" Background="Transparent" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0" />
+				<Label x:Name="PackMeanVoltageLbl" Content="x̄ Cell: 0.0V" Background="Transparent" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0"  />
+			</Grid>
+			<Grid Background="#FF1A7400"  Grid.Row="1" Margin="5" Grid.Column="2">
+				<Label x:Name="PackChargeLevelLbl" Content="00.0%  0.00KWh" Background="Transparent" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0" />
+				<Label x:Name="PackStatusLbl" Content="UNDER LOAD" Background="Transparent" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0"  />
+			</Grid>
+		
+		</Grid>
+		<Grid Margin="5">
+			<Grid.RowDefinitions>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+				<RowDefinition/>
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition/>
+				<ColumnDefinition/>
+			</Grid.ColumnDefinitions>
+			<Rectangle Fill="#FF870000" Margin="7" Stroke="#FF00C700" StrokeThickness="0" Grid.ColumnSpan="2"/>
+			<Viewbox Grid.ColumnSpan="2" Margin="7">
+                
+				<Label x:Name="RangeLbl" Content="RANGE: 0.0 NM, 00h 00m (12:00AM)"  VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="21.333"/>
+			</Viewbox>
+            
+            
+			<Label x:Name="MotorHumidityLbl" Content="HUMIDITY --%,--%" Grid.ColumnSpan="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="21.333" Grid.Row="1"/>
+			<Label x:Name="TimeLbl" Content="12:00 AM" Grid.ColumnSpan="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="21.333" Grid.Row="1" Grid.Column="1"/>
+			<Label x:Name="MotorTempLbl" Content="MOTOR TEMP: -- C" Grid.ColumnSpan="1" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="21.333" Grid.Row="2" Grid.Column="0"/>
+			<UniformGrid Grid.Row="2" Grid.Column="1" Rows="2" Columns="1">
+				<Label x:Name="MotorBoardTempLbl" Content="MOTOR BOARD TEMP: -- C" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+				<Label x:Name="BmsMasterTempLbl" Content="BATTERY BOARD TEMP: -- C" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+			</UniformGrid>
+			<Button x:Name="StopBtn" Content="STOP" Grid.Row="3" Margin="7" FontWeight="Bold" FontFamily="Consolas" FontSize="32" Click="StopBtn_Click" />
+			<Label Grid.Row="3" Grid.Column="1" Content="Weather goes here" Background="blue" />
+		</Grid>
+		<Grid>
+			<DockPanel>
+
+            
+				<Grid DockPanel.Dock="Bottom">
+					<Button x:Name="SetupBtn" Content="Setup" Width="60" Height="20" Click="SetupBtn_Click" Margin="10" HorizontalAlignment="Left" />
+					<Button x:Name="CloseBtn" Content="Exit" Width="60" Height="20" Margin="10" HorizontalAlignment="Right" Click="CloseBtn_Click" />
+                    <Button x:Name="TextBtn" Content="TextReport" Width="60" Height="20" Margin="10" HorizontalAlignment="Center" Click="TextBtn_Click" />
+                    <Button x:Name="ChargeBtn" Content="Start Charge" Width="80" Height="20" Margin="80, 10,10,10" HorizontalAlignment="Left" Click="ChargeBtn_Click" />
+                    <CheckBox x:Name="AlarmCheckBox" Content="Disable Alarm" HorizontalAlignment="Left" Margin="258,13,0,0" VerticalAlignment="Top" Foreground="White" Checked="AlarmCheckBox_Checked" Unchecked="AlarmCheckBox_Checked"/>
+                </Grid>
+
+            
+				<UniformGrid DockPanel.Dock="Bottom" Columns="6">
+					<Button x:Name="NoDirectionBtn" Content="No Direction" Margin="5" Click="NoDirectionBtn_Click" />
+					<Button x:Name="ForwardBtn" Content="Forward" Margin="5" Click="ForwardBtn_Click" />
+					<Button x:Name="ReverseBtn" Content="Reverse" Margin="5" Click="ReverseBtn_Click" />
+					<Button x:Name="KeyOnBtn" Content="Key On" Margin="5" Click="KeyOnBtn_Click" />
+					<Button x:Name="KeyOffBtn" Content="Key Off" Margin="5" Click="KeyOffBtn_Click" />
+					<TextBox x:Name="CurrentTxtBox" TextWrapping="Wrap" Text="0.0" Margin="5" />
+				</UniformGrid>
+
+            
+				<UniformGrid DockPanel.Dock="Bottom"  Columns="5" Rows="1">
+					<Button x:Name="Relay1Btn" Content="Relay1" Margin="5" IsEnabled="False"/>
+					<Button x:Name="Relay2Btn" Content="Relay2" Margin="5" IsEnabled="True"/>
+					<Button x:Name="Relay3Btn" Content="Relay3" Margin="5" IsEnabled="False"/>
+					<Button x:Name="Relay4Btn" Content="Relay4" Margin="5" IsEnabled="False"/>
+					<Button x:Name="Relay5Btn" Content="Relay5" Margin="5" IsEnabled="False"/>
+				</UniformGrid>
+
+				<UniformGrid DockPanel.Dock="Bottom"  Columns="5" Rows="1">
+					<CheckBox x:Name="Relay1PrechargeChkBox" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left">0 V</CheckBox>
+					<CheckBox x:Name="Relay2PrechargeChkBox" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left">0 V</CheckBox>
+					<CheckBox x:Name="Relay3PrechargeChkBox" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left">0 V</CheckBox>
+					<CheckBox x:Name="Relay4PrechargeChkBox" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left">0 V</CheckBox>
+					<CheckBox x:Name="Relay5PrechargeChkBox" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Left">0 V</CheckBox>
+				</UniformGrid>
+
+				<UniformGrid DockPanel.Dock="Bottom"  Columns="5" Rows="1">
+					<TextBlock Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" >MASTER</TextBlock>
+					<TextBlock Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" >CHARGE</TextBlock>
+					<TextBlock Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" >12 V</TextBlock>
+					<TextBlock Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" >5 V</TextBlock>
+					<TextBlock Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" >N/A</TextBlock>
+				</UniformGrid>
+				<ListBox x:Name="DebugListBox" DockPanel.Dock="Bottom" Background="#FF131313" BorderBrush="#FF0ADA00" Margin="5">
+				</ListBox>
+			</DockPanel>
+		</Grid>
+	</UniformGrid>
+</Window>
