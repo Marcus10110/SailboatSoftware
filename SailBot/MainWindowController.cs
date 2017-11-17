@@ -18,7 +18,18 @@ namespace SailBot
 
             if (!String.IsNullOrEmpty(BmsComPort) && BmsCom.Open(BmsComPort))
             {
-                read_data = BmsCom.BmsUpdate(write_data);
+                try
+                {
+                    //usually throws a timeout if the FTDI part has power and is connected but 48V is off.
+                    read_data = BmsCom.BmsUpdate(write_data);
+                }
+                catch( Exception ex)
+                {
+                    //we still need to close the comport if we left it open, so the next attempt works properly.
+                    if( BmsCom.IsOpen() )
+                        BmsCom.Close();
+                    throw ex; //rethrow, so the top catches it.
+                }
 
                 BmsCom.Close();     
             }

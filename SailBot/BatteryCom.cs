@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -384,6 +385,30 @@ namespace SailBot
 
             return read_data;
         }
+
+        public BmsDisplayValues ConvertToDisplayData()
+        {
+            BmsDisplayValues display = new BmsDisplayValues()
+            {
+                CellTemp = new double[CELL_COUNT],
+                CellVoltage = new double[CELL_COUNT],
+                ChargeCurrent = GetChargeCurrent(),
+                Humidity = GetMasterHumidity(),
+                PackVoltage = GetPackVoltage(),
+                PrimaryCurrent = GetMasterCurrent(),
+                Temperture = GetMasterTemperature(),
+                PackAmpHours = GetAmpHours()
+            };
+
+            for( int i = 0; i < CELL_COUNT; ++i)
+            {
+                display.CellTemp[i] = GetCellTemperature(i);
+                display.CellVoltage[i] = GetCellVoltage(i);
+            }
+
+            return display;
+        }
+
     }
 
     public class BatteryWriteDataStruct
@@ -567,6 +592,23 @@ namespace SailBot
             BatteryReadDataStruct read_data = BatteryReadDataStruct.Deserialize(rx_buffer);
 
             return read_data;
+        }
+    }
+
+    public class BmsDisplayValues
+    {
+        public double Temperture { get; set; }
+        public double Humidity { get; set; }
+        public double[] CellTemp { get; set; }
+        public double[] CellVoltage { get; set; }
+        public double PrimaryCurrent { get; set; }
+        public double ChargeCurrent { get; set; }
+        public double PackVoltage { get; set; }
+        public double PackAmpHours { get; set; }
+
+        public string GetJson()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }

@@ -211,6 +211,9 @@ namespace SailBot
             if (!SerialPort.GetPortNames().ToList().Contains(serial_port))
                 throw new Exception("Invalid serial port specified.");
 
+            if (Port.IsOpen)
+                return true; //it's already open.
+
             Port.PortName = serial_port;
             Port.BaudRate = 9600;
             Port.ReadTimeout = 100;

@@ -162,7 +162,7 @@
 				<Label x:Name="PackMeanVoltageLbl" Content="x̄ Cell: 0.0V" Background="Transparent" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0"  />
 			</Grid>
 			<Grid Background="#FF1A7400"  Grid.Row="1" Margin="5" Grid.Column="2">
-				<Label x:Name="PackChargeLevelLbl" Content="00.0%  0.00KWh" Background="Transparent" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0" />
+				<Label x:Name="PackChargeLevelLbl" Content="00.0%  0.00Ah" Background="Transparent" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0" />
 				<Label x:Name="PackStatusLbl" Content="UNDER LOAD" Background="Transparent" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0"  />
 			</Grid>
 		

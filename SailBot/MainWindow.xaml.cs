@@ -28,20 +28,10 @@ namespace SailBot
         public Double Rpm { get; set; }
     }
 
-    public struct BmsDisplayValues
-    {
-        public double Temperture { get; set; }
-        public double Humidity { get; set; }
-        public double[] CellTemp { get; set; }
-        public double[] CellVoltage { get; set; }
-        public double PrimaryCurrent { get; set; }
-        public double ChargeCurrent { get; set; }
-        public double PackVoltage { get; set; }
-    }
-
 
     public partial class MainWindow : Window
     {
+
         String[] Titles = { "SailBot", "Båtkapten", "Capitán del Barco", "kapitan łodzi", "capitaine de bateau" };
 
 
@@ -49,8 +39,8 @@ namespace SailBot
         MotorControllerCom MotorCom = new MotorControllerCom();
         BatteryCom BmsCom = new BatteryCom();
         BoatLightControl Leds = new BoatLightControl();
+        WebSocketService WebSocketService;
 
-        int LedState = 0;
 
         int ValidCellCountHistory = 0;
 
@@ -101,7 +91,6 @@ namespace SailBot
         private System.Timers.Timer ClockTimer;
         private System.Timers.Timer BmsUpdateTimer;
         private System.Timers.Timer MotorTimer;
-        private System.Timers.Timer WiiMoteTimer;
 
 
         private object BmsLock = new object();
@@ -194,6 +183,8 @@ namespace SailBot
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
 
+            
+
             DebugOut = new DebugWriter(DebugListBox, this.Dispatcher, DebugWriter.GetDefaultLogLocation());
 
             Console.SetOut(DebugOut);
@@ -226,7 +217,42 @@ namespace SailBot
             MotorTimer.Elapsed += MotorTimer_Elapsed;
             MotorTimer.Start();
 
+            //start websocket
 
+            try
+            {
+                WebSocketService = new WebSocketService(GetDisplayValuesForSocket, ProcessLedSocketCommand);
+                WebSocketService.Start();
+            }
+            catch( Exception ex)
+            {
+                Console.WriteLine("failed to start websocket. error: " + ex.Message);
+            }
+        }
+
+        private BmsDisplayValues GetDisplayValuesForSocket()
+        {
+            if (BatteryReadData == null)
+                return null;
+            return BatteryReadData.ConvertToDisplayData();
+        }
+
+        private void ProcessLedSocketCommand( string command )
+        {
+
+            Dictionary<string, Action> LedCommands = new Dictionary<string, Action>();
+
+            LedCommands.Add("white", () => { Leds.SetInteriorColor(Brushes.White); });
+            LedCommands.Add("red", () => { Leds.SetInteriorColor(Brushes.White); });
+            LedCommands.Add("rainbow", () => { Leds.SetRainbow(); });
+            LedCommands.Add("off", () => { Leds.InteriorLightsOff(); });
+
+            if (LedCommands.ContainsKey(command))
+            {
+                Console.WriteLine("LED command received: " + command);
+                LedCommands[command]();
+            }
+ 
         }
 
 
@@ -342,6 +368,10 @@ namespace SailBot
             {
                 BmsUpdateTimer.Stop();
                 BmsUpdate( BatteryWriteData );
+            }
+            catch( Exception ex )
+            {
+                Console.WriteLine("error communicating with Battery BMS at regular interval. detail: " + ex.Message);
             }
             finally
             {
@@ -669,10 +699,11 @@ namespace SailBot
             double pack_voltage = BatteryReadData.GetPackVoltage();
             double master_current = BatteryReadData.GetMasterCurrent();
             double charge_current = BatteryReadData.GetChargeCurrent();
+            double pack_amp_hours = BatteryReadData.GetAmpHours();
 
 
-            SystemCurrentLbl.Content = "Current: " + master_current.ToString( "0.0000" ) + "A";
-            SystemVoltageLbl.Content = "Voltage: " + pack_voltage.ToString( "0.000" ) + "V";
+            SystemCurrentLbl.Content = "Current: " + master_current.ToString( "0.000" ) + "A";
+            SystemVoltageLbl.Content = "Voltage: " + pack_voltage.ToString( "0.00" ) + "V";
 
             double w = pack_voltage * master_current;
             double kw = w / 1000.0;
@@ -681,7 +712,7 @@ namespace SailBot
             MotorPowerLbl.Content = kw.ToString("0.00") + " kW";
             MotorHpLbl.Content = hp.ToString("0.00") + "HP";
 
-            if( charge_current > 0.1 )
+            if( charge_current > 0.1 || charge_current < -0.1 )
             {
                 PackStatusLbl.Content = "CHARGING";
             }
@@ -698,7 +729,10 @@ namespace SailBot
 
             }
 
-            PackStatusLbl.Content = charge_current.ToString("0.00000") + "A";
+            PackStatusLbl.Content = charge_current.ToString("0.000") + "A";
+
+            double charge_percentage =  pack_amp_hours != 0 ? (pack_amp_hours / 40.0) : 0.0;
+            PackChargeLevelLbl.Content = pack_amp_hours.ToString("0.0") + "%  " + pack_amp_hours.ToString("0.0") + "Ah";  //00.0%  0.00Ah
 
         }
 
