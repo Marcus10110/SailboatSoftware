@@ -63,10 +63,11 @@ namespace SailBot
                 Random rand = new Random();
                 BmsDisplayValues bms_data = GetBmsStatusFunc();
                 if (bms_data == null)
+                {
                     bms_data = new BmsDisplayValues() //test data.
                     {
-                        CellTemp = new double[] { 60.0, 65.4, 72.1 },
-                        CellVoltage = new double[] { 3.3, 3.34, 2.81 },
+                        CellTemp = new double[15],
+                        CellVoltage = new double[15],
                         ChargeCurrent = 0.124 + (rand.NextDouble() / 45),
                         Humidity = 0.34,
                         PackAmpHours = 39.2452,
@@ -74,6 +75,12 @@ namespace SailBot
                         PrimaryCurrent = 15.46,
                         Temperture = 81.6
                     };
+                    for(int i = 0; i < bms_data.CellTemp.Length; ++i)
+                    {
+                        bms_data.CellTemp[i] = rand.Next(55, 65);
+                        bms_data.CellVoltage[i] = rand.Next(310, 350) / 100.0;
+                    }
+                }
                 if (bms_data != null)
                     Send(bms_data.GetJson());
                 else
